@@ -16,6 +16,7 @@ Given the appropriate csv, use `read.csv()` to read file. Finally, convert date 
 
 ```{r}
 options(scipen=999) # Disable scientific notation in output
+
 if (!file.exists("activity.csv")) {
         zipfileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
         zipfilename <- paste0("rep-data-activity-",strftime(Sys.time(),"%Y%m%d"),".zip")
@@ -38,7 +39,7 @@ stepsperday <- ddply(activity, .(date),summarise,steps=sum(steps))
 
 ```
 
-Plot the histogram of the number of steps per day. A bin width of a $max\:steps\over{20}$ was selected after various exploratory graphs.
+Plot the histogram of the number of steps per day. A bin width of (max steps)/20 was selected after various exploratory graphs.
 
 ```{r}
 library(ggplot2)
@@ -148,4 +149,4 @@ ggplot(stepsperimpinterval,aes(interval,steps)) +
         labs(title="Average Steps Per Interval",x="Interval",y="Steps")
 ```
 
-The plot shows distinct differences between weekdays and weekends. More steps are taken in the earlier part of the day during the weekdays but lower numbers of steps in the later portion of the day compared to weekend trends. Weekdays result in a the higher max steps per interval but lower averages across the entire day.
+The plot shows distinct differences between weekdays and weekends. More steps are taken in the earlier part of the day during the weekdays but lower numbers of steps in the later portion of the day compared to weekend trends. Weekdays result in a higher max steps per interval but lower averages across the entire day.
