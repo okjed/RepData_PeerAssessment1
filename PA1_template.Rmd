@@ -130,7 +130,7 @@ imputedmeanperday
 imputedmedianperday
 ```
 
-The mean of the imputed data is **`r imputedmeanperday`** and the median is **`r imputedmedianperday`**. Compared to the results from the original dataset, removing the `NA` had a mean of **`r meanperday`** and a median of **`r medianperday`** - so both the mean and median slightly after imputing the data with this method.
+The mean of the imputed data is **`r imputedmeanperday`** and the median is **`r imputedmedianperday`**. Compared to the results from the original dataset, removing the `NA` had a mean of **`r meanperday`** and a median of **`r medianperday`** - so both the mean and median increased by a small amount after imputing the data with this method.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -148,4 +148,4 @@ ggplot(stepsperimpinterval,aes(interval,steps)) +
         labs(title="Average Steps Per Interval",x="Interval",y="Steps")
 ```
 
-
+The plot shows distinct differences between weekdays and weekends. More steps are taken in the earlier part of the day during the weekdays but lower numbers of steps in the later portion of the day compared to weekend trends. Weekdays result in a the higher max steps per interval but lower averages across the entire day.
