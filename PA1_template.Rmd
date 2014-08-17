@@ -12,7 +12,7 @@ Although the file is already available within the repository, first check whethe
 - Downloads a new zip file into a local copy with **today's date**
 - Unzips the file and reads it into a dataframe.
 
-Given the appropriate csv, `read.csv()` the file and convert date string into a date format for future manipulation
+Given the appropriate csv, use `read.csv()` to read file. Finally, convert date string into a date format for future manipulation.
 
 ```{r}
 options(scipen=999) # Disable scientific notation in output
@@ -30,14 +30,15 @@ activity$date <- as.Date(activity$date)
 
 ## What is mean total number of steps taken per day?
 
-Create a new dataframe for the steps per day with the `ddply` from the `plyr` package
+Create a new dataframe for the steps per day with the `ddply` from the `plyr` package. The results are a summarized dataframe with the total steps per day.
+
 ```{r}
 library(plyr)
 stepsperday <- ddply(activity, .(date),summarise,steps=sum(steps))
 
 ```
 
-Plot the histogram of the number of steps per day
+Plot the histogram of the number of steps per day. A bin width of a $max\:steps\over{20}$
 ```{r}
 library(ggplot2)
 ggplot(stepsperday,aes(steps)) + 

@@ -64,7 +64,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <li>Downloads a new zip file into a local copy with <strong>today’s date</strong></li>
 <li>Unzips the file and reads it into a dataframe.</li>
 </ul>
-<p>Given the appropriate csv, <code>read.csv()</code> the file and convert date string into a date format for future manipulation</p>
+<p>Given the appropriate csv, use <code>read.csv()</code> to read file. Finally, convert date string into a date format for future manipulation.</p>
 <pre class="r"><code>options(scipen=999) # Disable scientific notation in output
 if (!file.exists(&quot;activity.csv&quot;)) {
         zipfileurl &lt;- &quot;https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip&quot;
@@ -78,10 +78,10 @@ activity$date &lt;- as.Date(activity$date)</code></pre>
 </div>
 <div id="what-is-mean-total-number-of-steps-taken-per-day" class="section level2">
 <h2>What is mean total number of steps taken per day?</h2>
-<p>Create a new dataframe for the steps per day with the <code>ddply</code> from the <code>plyr</code> package</p>
+<p>Create a new dataframe for the steps per day with the <code>ddply</code> from the <code>plyr</code> package. The results are a summarized dataframe with the total steps per day.</p>
 <pre class="r"><code>library(plyr)
 stepsperday &lt;- ddply(activity, .(date),summarise,steps=sum(steps))</code></pre>
-<p>Plot the histogram of the number of steps per day</p>
+<p>Plot the histogram of the number of steps per day. A bin width of a <span class="math">\(max\:steps\over{20}\)</span></p>
 <pre class="r"><code>library(ggplot2)
 ggplot(stepsperday,aes(steps)) + 
         geom_histogram(binwidth=max(stepsperday$steps,na.rm=TRUE)/20) +
