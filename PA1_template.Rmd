@@ -3,18 +3,138 @@
 
 ## Loading and preprocessing the data
 
+This assignment utilizes the source data file from:
 
+https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip
+
+Although the file is already available within the repository, first check whether `activity.csv` file exists. If not, the code:
+
+- Downloads a new zip file into a local copy with **today's date**
+- Unzips the file and reads it into a dataframe.
+
+Given the appropriate csv, `read.csv()` the file and convert date string into a date format for future manipulation
+
+```{r}
+options(scipen=999) # Disable scientific notation in output
+if (!file.exists("activity.csv")) {
+        zipfileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+        zipfilename <- paste0("rep-data-activity-",strftime(Sys.time(),"%Y%m%d"),".zip")
+        download.file(url=zipfileurl,destfile=zipfilename,method="curl")
+        unzip(zipfile=zipfilename)
+}
+
+activity <- read.csv("activity.csv",stringsAsFactors=FALSE)
+activity$date <- as.Date(activity$date)
+
+```
 
 ## What is mean total number of steps taken per day?
 
+Create a new dataframe for the steps per day with the `ddply` from the `plyr` package
+```{r}
+library(plyr)
+stepsperday <- ddply(activity, .(date),summarise,steps=sum(steps))
 
+```
+
+Plot the histogram of the number of steps per day
+```{r}
+library(ggplot2)
+ggplot(stepsperday,aes(steps)) + 
+        geom_histogram(binwidth=max(stepsperday$steps,na.rm=TRUE)/20) +
+        labs(title="Histogram of Steps Per Day",x="Steps",y="Frequency")
+````
+
+Find the mean and median.
+
+```{r}
+meanperday <- mean(stepsperday$steps,na.rm=TRUE)
+medianperday <- median(stepsperday$steps,na.rm=TRUE)
+meanperday
+medianperday
+```
+
+The mean is **`r meanperday`** and the median is **`r medianperday`**.
 
 ## What is the average daily activity pattern?
 
+We need to average the steps per interval, find the interval with the highest average and plot them.
 
+```{r}
+stepsperinterval <- ddply(activity,.(interval),summarise,steps=mean(steps,na.rm=TRUE))
+indexofmax <- which.max(stepsperinterval$steps)
+maxinterval <- stepsperinterval[indexofmax,"interval"]
+maxsteps <- stepsperinterval[indexofmax,"steps"]
+
+ggplot(stepsperinterval,aes(interval,steps)) +
+        geom_line() +
+        geom_hline(aes(yintercept=maxsteps),color="blue",show_guide=TRUE) +
+        geom_vline(xintercept=maxinterval,color="blue",show_guide=TRUE) +
+        labs(title="Average Steps Per Interval",x="Interval",y="Steps")
+```
+
+The interval with the greatest average number of steps was **`r maxinterval`** with **`r maxsteps`** steps.
 
 ## Imputing missing values
 
+Find the number of observations with missing values (**`NA`**)
+```{r}
+missingcount <- sum(!complete.cases(activity))
+```
+With `r missingcount` missing observations, let's see if there is a pattern
 
+```{r}
+missingintervalcount <- ddply(activity,.(date),summarise,missing=sum(is.na(steps)))
+missingintervalcount[missingintervalcount$missing>0,]
+
+```
+
+Given that there are 288 five minute intervals in a day - the pattern of missing data is all the data in a given day. Perhaps imputing the missing intervals with the average intervals for the same day of the week is a good approach since individual movement patterns tend to be cyclical by week.
+
+```{r}
+activity$day <- weekdays.Date(activity$date)
+ddply(activity,.(day),summarise,missing=sum(is.na(steps)))
+
+weekdaymeans <- ddply(activity,.(day,interval),summarise,meanstepweekday=mean(steps,na.rm=TRUE))
+imputed <- merge(activity,weekdaymeans,by=c("day","interval"))
+imputed$steps[is.na(imputed$steps)] <- imputed$meanstepweekday[is.na(imputed$steps)]
+imputed$meanstepweekday <- NULL
+
+```
+
+Now, a new histogram, mean and median with the imputed activity data.
+
+```{r}
+
+imputedstepsperday <- ddply(imputed, .(date),summarise,steps=sum(steps))
+
+library(ggplot2)
+ggplot(imputedstepsperday,aes(steps)) + 
+        geom_histogram(binwidth=max(imputedstepsperday$steps,na.rm=TRUE)/20) +
+        labs(title="Histogram of Steps Per Day (imputed data)",x="Steps",y="Frequency")
+````
+
+```{r}
+imputedmeanperday <- mean(imputedstepsperday$steps)
+imputedmedianperday <- median(imputedstepsperday$steps)
+imputedmeanperday
+imputedmedianperday
+```
+
+The mean of the imputed data is **`r imputedmeanperday`** and the median is **`r imputedmedianperday`**. Compared to the results from the original dataset, removing the `NA` had a mean of **`r meanperday`** and a median of **`r medianperday`** - so both the mean and median increased after imputing the data.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Create a new `daytype` variable to categorize weekday versus weekend and use this to facet a plot to find patterns among intervals
+
+```{r}
+imputed$daytype <- as.factor(ifelse(weekdays(imputed$date) %in% c("Saturday","Sunday"), "weekend", "weekday"))
+stepsperimpinterval <- ddply(imputed,.(interval,daytype),summarise,steps=mean(steps,na.rm=TRUE))
+
+ggplot(stepsperimpinterval,aes(interval,steps)) +
+        geom_line() +
+        facet_wrap(~ daytype,nrow=2) +
+        geom_line(stat="hline", linetype="dotted", yintercept="mean") +
+        geom_line(stat="hline", linetype="dotted", yintercept="max") +
+        labs(title="Average Steps Per Interval",x="Interval",y="Steps")
+```
